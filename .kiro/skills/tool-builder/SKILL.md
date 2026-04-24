@@ -1,3 +1,8 @@
+---
+name: tool-builder
+description: Generate tool handler Python modules for Nova Sonic test scenarios. Invoke when asked to create mock tool implementations, build tool handlers, or generate tool definitions — produces correctly structured async modules with ToolRegistry decorators, realistic mock data, and matching toolSpec JSON for configs.
+---
+
 # Tool Builder Skill
 
 Generate tool handler modules for Nova Sonic test scenarios.

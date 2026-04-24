@@ -9,8 +9,8 @@ from typing import List, Tuple
 
 
 # Limits
-MAX_MESSAGE_BYTES = 1024
-MAX_TOTAL_BYTES = 40 * 1024  # 40KB
+MAX_MESSAGE_BYTES = 50 * 1024  # 50KB per message
+MAX_TOTAL_BYTES = 200 * 1024  # 200KB total history
 
 
 class ConversationHistory:
@@ -29,7 +29,7 @@ class ConversationHistory:
 
         Args:
             role: "USER" or "ASSISTANT"
-            content: The message text (truncated to 1024 bytes)
+            content: The message text (truncated to 50KB)
         """
         # Truncate content to MAX_MESSAGE_BYTES
         encoded = content.encode('utf-8')
@@ -50,10 +50,14 @@ class ConversationHistory:
 
     def get_history_events(self, prompt_name: str) -> List[str]:
         """
-        Serialize all messages to Bedrock event JSON strings for replay.
+        Serialize messages to Bedrock event JSON strings for replay.
 
         Each message becomes: contentStart -> textInput -> contentEnd
         All are non-interactive with unique contentName UUIDs.
+
+        Walks backwards to prioritize recent messages when the total size
+        limit is hit, then drops leading assistant messages so replay
+        always starts with a USER message.
 
         Args:
             prompt_name: The prompt name for the new session
@@ -61,12 +65,29 @@ class ConversationHistory:
         Returns:
             List of JSON event strings ready to send via _send_raw_event
         """
-        events = []
+        # First pass: walk backwards to prioritize recent context
+        prepared: List[Tuple[str, str]] = []
+        total_bytes = 0
 
-        for role, content in self._messages:
+        for role, content in reversed(self._messages):
+            msg_bytes = len(content.encode('utf-8'))
+            if total_bytes + msg_bytes > MAX_TOTAL_BYTES:
+                break
+            total_bytes += msg_bytes
+            prepared.append((role, content))
+
+        # Reverse back to chronological order
+        prepared.reverse()
+
+        # Drop leading assistant messages so history starts with USER
+        while prepared and prepared[0][0] != "USER":
+            prepared.pop(0)
+
+        # Second pass: build events
+        events = []
+        for role, content in prepared:
             content_name = str(uuid.uuid4())
 
-            # contentStart (non-interactive)
             content_start = {
                 "event": {
                     "contentStart": {
@@ -83,7 +104,6 @@ class ConversationHistory:
             }
             events.append(json.dumps(content_start))
 
-            # textInput
             text_input = {
                 "event": {
                     "textInput": {
@@ -95,7 +115,6 @@ class ConversationHistory:
             }
             events.append(json.dumps(text_input))
 
-            # contentEnd
             content_end = {
                 "event": {
                     "contentEnd": {

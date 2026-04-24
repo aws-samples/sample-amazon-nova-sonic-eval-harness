@@ -1,3 +1,8 @@
+---
+name: eval-analyzer
+description: Analyze evaluation results from Nova Sonic test runs and provide actionable recommendations. Invoke when asked to analyze test results, debug failures, compare batches, or improve prompts based on evaluation feedback — reads batch summaries, session evaluations, and interaction logs to identify failure patterns and suggest fixes.
+---
+
 # Eval Analyzer Skill
 
 Analyze evaluation results from Nova Sonic test runs and provide actionable recommendations.

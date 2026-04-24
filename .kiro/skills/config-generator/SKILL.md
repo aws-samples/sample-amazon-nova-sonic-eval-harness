@@ -1,3 +1,8 @@
+---
+name: config-generator
+description: Generate valid Nova Sonic test configuration JSON files from natural language descriptions. Invoke when asked to create, modify, clone, or adapt test configs — reads the full TestConfig schema and model alias registry to produce correct JSON with proper system prompts, evaluation criteria, and tool definitions.
+---
+
 # Config Generator Skill
 
 Generate valid Nova Sonic test configuration JSON files from natural language descriptions.

@@ -197,7 +197,7 @@ Nova Sonic generates text in two stages via `contentStart` events with `addition
 
 Only FINAL text from ASSISTANT role is accumulated into the response buffer.
 
-**Session continuation** (`core/session_continuation.py`): Nova Sonic has an ~8-minute connection timeout. `SessionContinuationManager` wraps `SonicStreamManager` to automatically create new sessions, replay conversation history (1KB/msg, 40KB total budget), and remain transparent to the turn loop.
+**Session continuation** (`core/session_continuation.py`): Nova Sonic has an ~8-minute connection timeout. `SessionContinuationManager` wraps `SonicStreamManager` to automatically create new sessions, replay conversation history (50KB/msg, 200KB total budget), and remain transparent to the turn loop.
 
 **Model registry** (`configs/models.yaml` + `utils/model_registry.py`): All model aliases resolve through YAML config. Three categories: `user_models`, `sonic_models`, `judge_models`. To add a new model, edit the YAML — no code changes needed. Unmatched aliases fall back to literal Bedrock model IDs.
 
