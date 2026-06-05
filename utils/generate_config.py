@@ -16,11 +16,8 @@ import sys
 from pathlib import Path
 
 import boto3
-from dotenv import load_dotenv
 
 from utils.model_registry import get_model_registry
-
-load_dotenv()
 
 GENERATOR_SYSTEM_PROMPT = """\
 You are a test config generator for Nova Sonic, a speech-to-speech AI model.

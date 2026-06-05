@@ -19,6 +19,7 @@ No microphone or speaker required — uses silent audio streaming or Amazon Poll
 - [Module Reference](#module-reference)
 - [Directory Structure](#directory-structure)
 - [Examples](#examples)
+- [Skills](#skills)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -29,17 +30,22 @@ No microphone or speaker required — uses silent audio streaming or Amazon Poll
 # 1. Install dependencies
 pip install -r requirements.txt
 
-# 2. Configure AWS credentials
-cp .env.example .env
-# Edit .env with your AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, etc.
+# 2. Configure AWS credentials (choose one)
+aws configure sso              # Option A: IAM Identity Center (recommended)
+aws configure                  # Option B: Named profile
+# Or export AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY in your shell
 
-# 3. Run a basic conversation
+# 3. (Optional) Set Nova Sonic config via environment variables
+export SONIC_MODEL_ID=amazon.nova-2-sonic-v1:0
+export SONIC_REGION=us-east-1
+
+# 4. Run a basic conversation
 python main.py --config configs/example_basic.json
 
-# 4. Run with tools
+# 5. Run with tools
 python main.py --config configs/example_with_tools.json
 
-# 5. Batch test all configs in a directory
+# 6. Batch test all configs in a directory
 python main.py --scenarios-dir configs/order_status --parallel 2
 ```
 
@@ -78,19 +84,44 @@ Key dependencies:
 | `rx` (RxPY) | Reactive streams for event-driven audio/text |
 | `smithy-aws-core` | Low-level AWS signing for streaming |
 | `pyyaml` | Config file loading |
-| `python-dotenv` | `.env` file support |
 
 ### AWS Credentials
 
-Copy `.env.example` to `.env` and fill in:
+Use one of the standard AWS credential mechanisms — **do not** store access keys in a `.env` file.
+
+**Option 1 — IAM Identity Center (SSO)** (recommended for organizations):
 
 ```bash
-AWS_ACCESS_KEY_ID=your_access_key_here
-AWS_SECRET_ACCESS_KEY=your_secret_key_here
-AWS_DEFAULT_REGION=us-east-1
+aws configure sso
+# Then run with:
+AWS_PROFILE=your-sso-profile python main.py --config configs/example_basic.json
+```
 
-SONIC_MODEL_ID=amazon.nova-2-sonic-v1:0
-SONIC_REGION=us-east-1
+**Option 2 — Named profile via AWS CLI:**
+
+```bash
+aws configure --profile nova-sonic-eval
+# Then run with:
+AWS_PROFILE=nova-sonic-eval python main.py --config configs/example_basic.json
+```
+
+**Option 3 — Environment variables** (ephemeral, per shell session):
+
+```bash
+export AWS_ACCESS_KEY_ID=AKIA...
+export AWS_SECRET_ACCESS_KEY=...
+export AWS_SESSION_TOKEN=...  # if using temporary credentials
+export AWS_DEFAULT_REGION=us-east-1
+```
+
+### Optional configuration environment variables
+
+These override the corresponding config file values:
+
+```bash
+export SONIC_MODEL_ID=amazon.nova-2-sonic-v1:0
+export SONIC_REGION=us-east-1
+# export SONIC_ENDPOINT_URI=  # custom endpoint, if needed
 ```
 
 Environment variables override config file values for `sonic_model_id`, `sonic_region`, and `sonic_endpoint_uri`.
@@ -1105,11 +1136,38 @@ No microphone or speaker is needed. In text mode, the harness streams silent aud
 
 ---
 
+## Skills
+
+The `skills/` directory contains step-by-step guides for common tasks. Each skill encodes project-specific rules, validation steps, and reference material so AI coding agents (or developers) can complete complex workflows without starting from scratch.
+
+### eval-runner — Evaluate a Voice Agent
+
+Entry point: `skills/eval-runner/skill.md`
+
+Given a voice agent's system prompt and tool definitions, this skill walks you through the full evaluation lifecycle:
+
+1. **Create a tool handler module** — adapt the agent's tools to the `ToolRegistry` pattern with realistic mock data
+2. **Write evaluation configs** — define test scenarios covering happy paths, edge cases, and error handling
+3. **Run evaluations** — single scenarios, batch runs, or dataset-driven tests
+4. **Analyze and improve** — interpret LLM judge verdicts, identify failure root causes, and iterate on the prompt
+
+```bash
+# Example: run all scenarios for an agent
+python main.py --scenarios-dir configs/<agent> --parallel 2
+
+# View results in the dashboard
+streamlit run evaluation/evaluation_dashboard.py
+```
+
+See `skills/README.md` for the full list of available skills and usage examples.
+
+---
+
 ## Troubleshooting
 
 ### "Failed to initialize stream"
 
-- Check AWS credentials in `.env` are valid
+- Check AWS credentials are configured (run `aws sts get-caller-identity` to verify)
 - Verify the model ID exists in your region (`configs/models.yaml`)
 - Ensure `aws_sdk_bedrock_runtime` is the correct version (`>=0.1.0,<0.2.0`)
 
