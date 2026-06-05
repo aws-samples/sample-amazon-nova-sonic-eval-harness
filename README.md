@@ -35,8 +35,9 @@ aws configure sso              # Option A: IAM Identity Center (recommended)
 aws configure                  # Option B: Named profile
 # Or export AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY in your shell
 
-# 3. (Optional) Set non-secret config like region/model ID
-cp .env.example .env
+# 3. (Optional) Set Nova Sonic config via environment variables
+export SONIC_MODEL_ID=amazon.nova-2-sonic-v1:0
+export SONIC_REGION=us-east-1
 
 # 4. Run a basic conversation
 python main.py --config configs/example_basic.json
@@ -83,7 +84,6 @@ Key dependencies:
 | `rx` (RxPY) | Reactive streams for event-driven audio/text |
 | `smithy-aws-core` | Low-level AWS signing for streaming |
 | `pyyaml` | Config file loading |
-| `python-dotenv` | `.env` file support |
 
 ### AWS Credentials
 
@@ -114,11 +114,14 @@ export AWS_SESSION_TOKEN=...  # if using temporary credentials
 export AWS_DEFAULT_REGION=us-east-1
 ```
 
-For non-secret configuration (model IDs, regions), you can optionally copy `.env.example` to `.env`:
+### Optional configuration environment variables
+
+These override the corresponding config file values:
 
 ```bash
-cp .env.example .env
-# Edit .env to set SONIC_MODEL_ID, SONIC_REGION, etc.
+export SONIC_MODEL_ID=amazon.nova-2-sonic-v1:0
+export SONIC_REGION=us-east-1
+# export SONIC_ENDPOINT_URI=  # custom endpoint, if needed
 ```
 
 Environment variables override config file values for `sonic_model_id`, `sonic_region`, and `sonic_endpoint_uri`.

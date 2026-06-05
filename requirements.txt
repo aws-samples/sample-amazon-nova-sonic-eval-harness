@@ -6,7 +6,6 @@ boto3>=1.34.0
 
 # Configuration
 pyyaml>=6.0
-python-dotenv>=1.0.0
 
 # Results management
 pandas>=2.0.0

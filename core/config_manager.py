@@ -9,7 +9,6 @@ import os
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, field, asdict
-from dotenv import load_dotenv
 
 
 @dataclass
@@ -131,24 +130,15 @@ class TestConfig:
 class ConfigManager:
     """Manages test configurations."""
 
-    def __init__(self, config_dir: str = "configs", env_file: str = ".env"):
+    def __init__(self, config_dir: str = "configs"):
         """
         Initialize config manager.
 
         Args:
             config_dir: Directory containing configuration files
-            env_file: Path to .env file
         """
         self.config_dir = Path(config_dir)
         self.config_dir.mkdir(parents=True, exist_ok=True)
-
-        # Load environment variables from .env file
-        env_path = Path(env_file)
-        if env_path.exists():
-            load_dotenv(env_path, override=True)
-            print(f"✅ Loaded environment variables from {env_file}")
-        else:
-            print(f"⚠️  No .env file found at {env_file}, using system environment variables")
 
     def load_config(self, config_path: str) -> TestConfig:
         """

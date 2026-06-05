@@ -11,8 +11,6 @@ import json
 import uuid
 import warnings
 from typing import Optional, Callable, Dict, Any
-from dotenv import load_dotenv
-load_dotenv(override=True)
 from rx.subject import Subject
 from rx import operators as ops
 from rx.scheduler.eventloop import AsyncIOScheduler
