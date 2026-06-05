@@ -1164,7 +1164,7 @@ See `skills/README.md` for the full list of available skills and usage examples.
 
 ### "Failed to initialize stream"
 
-- Check AWS credentials in `.env` are valid
+- Check AWS credentials are configured (run `aws sts get-caller-identity` to verify)
 - Verify the model ID exists in your region (`configs/models.yaml`)
 - Ensure `aws_sdk_bedrock_runtime` is the correct version (`>=0.1.0,<0.2.0`)
 
