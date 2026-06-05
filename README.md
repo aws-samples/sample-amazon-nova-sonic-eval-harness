@@ -19,6 +19,7 @@ No microphone or speaker required — uses silent audio streaming or Amazon Poll
 - [Module Reference](#module-reference)
 - [Directory Structure](#directory-structure)
 - [Examples](#examples)
+- [Skills](#skills)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -1129,6 +1130,33 @@ Reference it from your config:
 No microphone or speaker is needed. In text mode, the harness streams silent audio to satisfy Nova Sonic's requirement for an active audio channel while sending text input. In Polly mode, user simulator text is synthesized to speech and streamed as real audio input.
 
 > **Note:** The output sample rate is controlled by `audioOutputConfiguration.sampleRateHertz` in `sonic_stream_manager.py:start_prompt()`. Nova Sonic respects this setting. When Polly mode is enabled, both input and output use 16kHz so conversation recordings stay aligned.
+
+---
+
+## Skills
+
+The `skills/` directory contains step-by-step guides for common tasks. Each skill encodes project-specific rules, validation steps, and reference material so AI coding agents (or developers) can complete complex workflows without starting from scratch.
+
+### eval-runner — Evaluate a Voice Agent
+
+Entry point: `skills/eval-runner/skill.md`
+
+Given a voice agent's system prompt and tool definitions, this skill walks you through the full evaluation lifecycle:
+
+1. **Create a tool handler module** — adapt the agent's tools to the `ToolRegistry` pattern with realistic mock data
+2. **Write evaluation configs** — define test scenarios covering happy paths, edge cases, and error handling
+3. **Run evaluations** — single scenarios, batch runs, or dataset-driven tests
+4. **Analyze and improve** — interpret LLM judge verdicts, identify failure root causes, and iterate on the prompt
+
+```bash
+# Example: run all scenarios for an agent
+python main.py --scenarios-dir configs/<agent> --parallel 2
+
+# View results in the dashboard
+streamlit run evaluation/evaluation_dashboard.py
+```
+
+See `skills/README.md` for the full list of available skills and usage examples.
 
 ---
 
