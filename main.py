@@ -774,20 +774,51 @@ class LiveInteractionSession:
             await self.cleanup()
 
 
+# Allowed package prefixes for tool registry modules. Only modules under these
+# top-level packages can be loaded via the tool_registry_module config field.
+# Add new prefixes here when introducing additional tool module directories.
+ALLOWED_TOOL_MODULE_PREFIXES = (
+    "tools.",
+    "examples.",
+    "custom_tools.",
+    "scenarios.",
+)
+
+
 def _load_tool_registry(config: TestConfig) -> Optional[ToolRegistry]:
-    """Load tool registry from module specified in config."""
+    """Load tool registry from module specified in config.
+
+    Only modules whose dotted path starts with one of ALLOWED_TOOL_MODULE_PREFIXES
+    are permitted. This prevents arbitrary code execution via config injection.
+    """
     if not config.tool_registry_module:
         return None
+
+    module_path = config.tool_registry_module
+
+    # Validate against allowlist to prevent arbitrary code loading
+    if not module_path.startswith(ALLOWED_TOOL_MODULE_PREFIXES):
+        print(
+            f"❌ Refused to load tool registry module '{module_path}': "
+            f"must start with one of {ALLOWED_TOOL_MODULE_PREFIXES}"
+        )
+        return None
+
+    # Reject path traversal attempts (e.g., "examples..os" or embedded slashes)
+    if ".." in module_path or "/" in module_path or "\\" in module_path:
+        print(f"❌ Refused to load tool registry module '{module_path}': invalid module path")
+        return None
+
     try:
-        print(f"📦 Loading tool registry from: {config.tool_registry_module}")
+        print(f"📦 Loading tool registry from: {module_path}")
         import importlib
-        module = importlib.import_module(config.tool_registry_module)
+        module = importlib.import_module(module_path)
         if hasattr(module, 'registry'):
             registry = module.registry
             print(f"✅ Loaded tool registry with tools: {', '.join(registry.list_tools())}")
             return registry
         else:
-            print(f"⚠️  Module {config.tool_registry_module} has no 'registry' attribute")
+            print(f"⚠️  Module {module_path} has no 'registry' attribute")
     except ImportError as e:
         print(f"⚠️  Could not import tool registry module: {e}")
     except Exception as e:

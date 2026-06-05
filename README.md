@@ -29,17 +29,21 @@ No microphone or speaker required — uses silent audio streaming or Amazon Poll
 # 1. Install dependencies
 pip install -r requirements.txt
 
-# 2. Configure AWS credentials
-cp .env.example .env
-# Edit .env with your AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, etc.
+# 2. Configure AWS credentials (choose one)
+aws configure sso              # Option A: IAM Identity Center (recommended)
+aws configure                  # Option B: Named profile
+# Or export AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY in your shell
 
-# 3. Run a basic conversation
+# 3. (Optional) Set non-secret config like region/model ID
+cp .env.example .env
+
+# 4. Run a basic conversation
 python main.py --config configs/example_basic.json
 
-# 4. Run with tools
+# 5. Run with tools
 python main.py --config configs/example_with_tools.json
 
-# 5. Batch test all configs in a directory
+# 6. Batch test all configs in a directory
 python main.py --scenarios-dir configs/order_status --parallel 2
 ```
 
@@ -82,15 +86,38 @@ Key dependencies:
 
 ### AWS Credentials
 
-Copy `.env.example` to `.env` and fill in:
+Use one of the standard AWS credential mechanisms — **do not** store access keys in a `.env` file.
+
+**Option 1 — IAM Identity Center (SSO)** (recommended for organizations):
 
 ```bash
-AWS_ACCESS_KEY_ID=your_access_key_here
-AWS_SECRET_ACCESS_KEY=your_secret_key_here
-AWS_DEFAULT_REGION=us-east-1
+aws configure sso
+# Then run with:
+AWS_PROFILE=your-sso-profile python main.py --config configs/example_basic.json
+```
 
-SONIC_MODEL_ID=amazon.nova-2-sonic-v1:0
-SONIC_REGION=us-east-1
+**Option 2 — Named profile via AWS CLI:**
+
+```bash
+aws configure --profile nova-sonic-eval
+# Then run with:
+AWS_PROFILE=nova-sonic-eval python main.py --config configs/example_basic.json
+```
+
+**Option 3 — Environment variables** (ephemeral, per shell session):
+
+```bash
+export AWS_ACCESS_KEY_ID=AKIA...
+export AWS_SECRET_ACCESS_KEY=...
+export AWS_SESSION_TOKEN=...  # if using temporary credentials
+export AWS_DEFAULT_REGION=us-east-1
+```
+
+For non-secret configuration (model IDs, regions), you can optionally copy `.env.example` to `.env`:
+
+```bash
+cp .env.example .env
+# Edit .env to set SONIC_MODEL_ID, SONIC_REGION, etc.
 ```
 
 Environment variables override config file values for `sonic_model_id`, `sonic_region`, and `sonic_endpoint_uri`.
